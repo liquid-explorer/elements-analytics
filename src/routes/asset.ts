@@ -1,12 +1,14 @@
-import { Router } from "express";
+import { Router } from 'express';
 
 // import { getAsset, getSupply } from "../controllers/asset";
 
-export const assetRoutes = Router()
+export const assetRoutes = Router();
 
-assetRoutes.get('/ping', (_, res) => res.status(200).json({
-    message: 'OK'
-}))
+assetRoutes.get('/ping', (_, res) =>
+  res.status(200).json({
+    message: 'OK',
+  })
+);
 
 /**
 
