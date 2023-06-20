@@ -1,2 +1,3 @@
-export * from './lib/async';
-export * from './lib/number';
+import express from 'express';
+
+const app = express();
