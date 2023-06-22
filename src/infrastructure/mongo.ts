@@ -1,13 +1,26 @@
 import mongoose from 'mongoose';
 
-export const SupplyGraphSchema = new mongoose.Schema({
+const SupplyGraphSchema = new mongoose.Schema({
   supply: Number,
   date: Number,
 });
 
-export const assetSchema = new mongoose.Schema({
-  assetID: String,
+export const SupplyGraph = mongoose.model('SupplyGraph', SupplyGraphSchema);
+
+const assetSchema = new mongoose.Schema({
+  assetHash: String,
   name: String,
   ticker: String,
   precision: Number,
+  isEnable: Boolean,
 });
+
+export const Asset = mongoose.model('Asset', assetSchema);
+
+export function findOneAsset() {
+  throw console.error();
+}
+
+export function findCoords() {
+  throw console.error();
+}

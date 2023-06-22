@@ -13,6 +13,9 @@ mongoose
   .connect(process.env.DATABASE_URL)
   .then(() => {
     console.log('starting the server...');
+
+    // initializer la db avec les assset manquantes!
+
     app.listen(5000);
   })
   .catch((err) => console.log(err));
