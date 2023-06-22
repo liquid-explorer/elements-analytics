@@ -1,30 +1,29 @@
 import dotenv from 'dotenv';
 import express from 'express';
-import mongoose from 'mongoose';
 
+import { AssetController } from './controllers/asset';
+import { AssetMongoRepository } from './infrastructure/mongo';
 import { logger } from './middlewares/logger';
-import { assetRoutes } from './routes/asset';
+import { makeAssetRoutes } from './routes/asset';
 
 dotenv.config();
 
-const app = express();
+async function run() {
+  const app = express();
 
-mongoose
-  .connect(process.env.DATABASE_URL)
-  .then(() => {
-    console.log('starting the server...');
+  const mongoRepo = await AssetMongoRepository.connect(
+    process.env.DATABASE_URL
+  );
 
-    // initializer la db avec les assset manquantes!
+  console.log('starting the server...');
+  app.listen(5000);
 
-    app.listen(5000);
-  })
-  .catch((err) => console.log(err));
+  const controller = new AssetController(mongoRepo);
+  const assetRoutes = makeAssetRoutes(controller);
 
-// register asset assetRoutes
+  app.use(logger);
+  app.use(express.json());
+  app.use('/api/asset', assetRoutes);
+}
 
-// middleware
-app.use(logger);
-app.use(express.json());
-
-// routes
-app.use('/api/asset', assetRoutes);
+run().catch(console.error);

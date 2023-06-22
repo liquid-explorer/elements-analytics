@@ -1,11 +1,15 @@
 import mongoose from 'mongoose';
 
-const SupplyGraphSchema = new mongoose.Schema({
-  supply: Number,
-  date: Number,
-});
+import { Asset } from '../domain/asset';
 
-export const SupplyGraph = mongoose.model('SupplyGraph', SupplyGraphSchema);
+import { AssetRepository } from './repository';
+
+// const SupplyGraphSchema = new mongoose.Schema({
+//   supply: Number,
+//   date: Number,
+// });
+
+// const SupplyGraph = mongoose.model('SupplyGraph', SupplyGraphSchema);
 
 const assetSchema = new mongoose.Schema({
   assetHash: String,
@@ -15,12 +19,46 @@ const assetSchema = new mongoose.Schema({
   isEnable: Boolean,
 });
 
-export const Asset = mongoose.model('Asset', assetSchema);
+const AssetModel = mongoose.model('Asset', assetSchema);
 
-export function findOneAsset() {
-  throw console.error();
-}
+// AssetMongoRepository is the implementation of the AssetRepository for the mongo database.
+export class AssetMongoRepository implements AssetRepository {
+  private constructor() {
+    // private constructor
+  }
 
-export function findCoords() {
-  throw console.error();
+  static async connect(url: string): Promise<AssetMongoRepository> {
+    await mongoose.connect(url);
+    return new AssetMongoRepository();
+  }
+
+  async createAsset(asset: Asset): Promise<void> {
+    await AssetModel.create(asset);
+  }
+
+  async setAssetEnable(assetHash: string): Promise<void> {
+    await AssetModel.findOneAndUpdate(
+      { assetHash: assetHash },
+      { isEnable: true },
+      { new: true, runValidators: true }
+    );
+  }
+
+  async getAsset(assetHash: string): Promise<Asset> {
+    const document = await AssetModel.findOne({
+      assetHash: assetHash,
+    });
+
+    if (!document) {
+      throw new Error('not found');
+    }
+
+    return {
+      assetHash: document.assetHash,
+      name: document.name,
+      ticker: document.ticker,
+      precision: document.precision,
+      isEnable: document.isEnable,
+    };
+  }
 }
