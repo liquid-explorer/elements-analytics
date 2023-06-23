@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 
 import { AssetRepository } from '../infrastructure/repository';
 
+// limit the number of results of GET /api/assets?regex=???
+const LIMIT_SEARCH = 50;
 export class AssetController {
   constructor(private repository: AssetRepository) {}
 
@@ -16,11 +18,12 @@ export class AssetController {
       ) {
         throw new Error('error');
       }
-      const assetFoundInDB = await this.repository.getAsset(req.body.assetHash);
-      if (assetFoundInDB) {
+      try {
+        await this.repository.getAsset(req.body.assetHash);
         res.status(400).json({ msg: `${req.body.assetHash} already exists` });
         return;
-      }
+        // eslint-disable-next-line no-empty
+      } catch {}
 
       const result = await this.repository.createAsset({
         ...req.body,
@@ -45,31 +48,37 @@ export class AssetController {
   async enableAsset(req: Request, res: Response) {
     // cherkAdmin(req, res);
     try {
-      const result = await this.repository.setAssetEnable(req.params.assetHash);
-      res.status(200).json({ result });
+      await this.repository.setAssetEnable(req.params.assetHash);
+      res.status(200).json({ msg: 'Asset has been enabled' });
     } catch (error) {
       res.status(404).json({ msg: 'Not found' });
     }
   }
-}
-
-// export async function disableAsset(_: Request, res: Response) {
-//   // cherkAdmin(req, res);
-//   if (!enableAssetId) {
-//     res.status(200).json({ msg: 'Okay' });
-//   }
-// }
-/*
-// a faire apres lecture de regexp
-export async function searchAssetWithRegexp(req: Request, res: Response) {
-  try {
-    const result = await Asset.findOne({  });
-    res.status(200).json({ result });
-  } catch (error) {
-    res.status(404).json({ msg: 'Product not found' });
+  async disableAsset(req: Request, res: Response) {
+    // cherkAdmin(req, res);
+    try {
+      await this.repository.setAssetDisable(req.params.assetHash);
+      res.status(200).json({ msg: 'Asset not has been enabled' });
+    } catch (error) {
+      res.status(404).json({ msg: 'Not found' });
+    }
+  }
+  async searchAssets(req: Request, res: Response) {
+    try {
+      if (typeof req.query.regex !== 'string' || !req.query.regex)
+        throw new Error('query parameter regex invalid');
+      const assetSearch = await this.repository.searchAssets(
+        req.query.regex,
+        LIMIT_SEARCH
+      );
+      res.status(200).json({ assetSearch });
+    } catch (error) {
+      res.status(404).json({ msg: 'not found' });
+    }
   }
 }
 
+/*
 export async function getSupply(req: Request, res: Response) {
   throw new Error('not implemented');
 }

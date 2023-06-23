@@ -9,12 +9,18 @@ export function makeAssetRoutes(controller: AssetController): Router {
       message: 'OK',
     })
   );
-  assetRoutes.get('/:assetHash', controller.getAsset);
-  assetRoutes.get('/:assetHash/enable', controller.enableAsset);
-  assetRoutes.post('/', controller.createAsset);
+
+  assetRoutes.get('/:assetHash', (req, res) => controller.getAsset(req, res));
+  assetRoutes.get('/:assetHash/enable', (req, res) =>
+    controller.enableAsset(req, res)
+  );
+  assetRoutes.get('/', (req, res) => controller.searchAssets(req, res));
+  assetRoutes.get('/:assetHash/disable', (req, res) =>
+    controller.disableAsset(req, res)
+  );
+  assetRoutes.post('/', (req, res) => controller.createAsset(req, res));
+
   return assetRoutes;
 }
-
-//assetRoutes.get('/:assetID/disable', disableAsset);
 
 //assetRoutes.get('/supply', getSupply);

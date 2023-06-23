@@ -29,4 +29,35 @@ export class InMemoryRepository implements AssetRepository {
     this.assets.filter((asset: Asset) => asset.assetHash !== assetHash);
     this.assets.push(asset);
   }
+
+  async setAssetDisable(assetHash: string): Promise<void> {
+    const asset = await this.getAsset(assetHash);
+    if (asset.isEnable === false) return;
+
+    asset.isEnable = false;
+    this.assets.filter((asset: Asset) => asset.assetHash);
+    this.assets.push(asset);
+  }
+  // fuj
+  async searchAssets(regex: string, limit: number): Promise<Asset[]> {
+    const regexE = new RegExp(regex);
+    const results: Asset[] = [];
+
+    for (const asset of this.assets) {
+      // test
+      if (
+        regexE.test(asset.name) ||
+        regexE.test(asset.assetHash) ||
+        regexE.test(asset.ticker)
+      ) {
+        results.push(asset);
+        if (results.length > limit) {
+          break;
+        }
+      }
+      // tu ajoute a result
+    }
+
+    return Promise.resolve(results);
+  }
 }

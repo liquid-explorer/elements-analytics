@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 import { Asset } from '../domain/asset';
 
@@ -44,6 +44,14 @@ export class AssetMongoRepository implements AssetRepository {
     );
   }
 
+  async setAssetDisable(assetHash: string): Promise<void> {
+    await AssetModel.findOneAndUpdate(
+      { assetHash: assetHash },
+      { isEnable: false },
+      { new: false, runValidators: true }
+    );
+  }
+
   async getAsset(assetHash: string): Promise<Asset> {
     const document = await AssetModel.findOne({
       assetHash: assetHash,
@@ -53,12 +61,35 @@ export class AssetMongoRepository implements AssetRepository {
       throw new Error('not found');
     }
 
-    return {
-      assetHash: document.assetHash,
-      name: document.name,
-      ticker: document.ticker,
-      precision: document.precision,
-      isEnable: document.isEnable,
-    };
+    return makeAssetFromModel(document);
   }
+
+  async searchAssets(regex: string, limit: number): Promise<Asset[]> {
+    const documents = await AssetModel.find({
+      $or: [
+        { assetHash: { $regex: regex } },
+        { name: { $regex: regex } },
+        { ticker: { $regex: regex } },
+      ],
+    }).limit(limit);
+    return documents.map(makeAssetFromModel);
+  }
+}
+
+// makeAssetFromModel converts a document (using AssetModel) to an Asset interface (from domain)
+function makeAssetFromModel(document: Document): Asset {
+  if (!document['assetHash'])
+    throw new Error('assetHash is missing in document');
+
+  if (!document['name']) throw new Error('name is missing in document');
+
+  if (!document['ticker']) throw new Error('ticker is missing in document');
+
+  return {
+    assetHash: document['assetHash'],
+    name: document['name'],
+    ticker: document['ticker'],
+    precision: document['precision'],
+    isEnable: document['isEnable'],
+  };
 }
