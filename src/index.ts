@@ -1,29 +1,42 @@
 import dotenv from 'dotenv';
 import express from 'express';
 
+import { EsploraChainSource } from './application/chainsource';
+import { Updater } from './application/updater';
 import { AssetController } from './controllers/asset';
-import { AssetMongoRepository } from './infrastructure/mongo';
+import { connect } from './infrastructure/mongo';
 import { logger } from './middlewares/logger';
-import { makeAssetRoutes } from './routes/asset';
+import { makeAssetRouter } from './routes/asset';
 
 dotenv.config();
 
 async function run() {
-  const app = express();
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not defined');
+  }
 
-  const mongoRepo = await AssetMongoRepository.connect(
-    process.env.DATABASE_URL
-  );
+  if (!process.env.ESPLORA_URL) {
+    throw new Error('ESPLORA_URL is not defined');
+  }
+
+  const [assetRepo, txsRepo] = await connect(process.env.DATABASE_URL);
 
   console.log('starting the server...');
+  const app = express();
   app.listen(5000);
 
-  const controller = new AssetController(mongoRepo);
-  const assetRoutes = makeAssetRoutes(controller);
+  const controller = new AssetController(assetRepo, txsRepo);
+
+  const chainSource = new EsploraChainSource(process.env.ESPLORA_URL);
+  const updater = new Updater(chainSource, txsRepo);
+
+  const assetRouter = makeAssetRouter(controller, updater);
 
   app.use(logger);
   app.use(express.json());
-  app.use('/api/asset', assetRoutes);
+  app.use('/api/asset', assetRouter);
 }
 
-run().catch(console.error);
+run()
+  .catch(console.error)
+  .finally(() => console.log('done'));

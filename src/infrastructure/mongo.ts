@@ -1,15 +1,9 @@
 import mongoose, { Document } from 'mongoose';
 
 import { Asset } from '../domain/asset';
+import { AssetChainTransaction } from '../domain/transaction';
 
-import { AssetRepository } from './repository';
-
-// const SupplyGraphSchema = new mongoose.Schema({
-//   supply: Number,
-//   date: Number,
-// });
-
-// const SupplyGraph = mongoose.model('SupplyGraph', SupplyGraphSchema);
+import { AssetRepository, SupplyTransactionRepository } from './repository';
 
 const assetSchema = new mongoose.Schema({
   assetHash: String,
@@ -22,18 +16,13 @@ const assetSchema = new mongoose.Schema({
 const AssetModel = mongoose.model('Asset', assetSchema);
 
 // AssetMongoRepository is the implementation of the AssetRepository for the mongo database.
-export class AssetMongoRepository implements AssetRepository {
-  private constructor() {
-    // private constructor
-  }
-
-  static async connect(url: string): Promise<AssetMongoRepository> {
-    await mongoose.connect(url);
-    return new AssetMongoRepository();
-  }
-
+class AssetMongoRepository implements AssetRepository {
   async createAsset(asset: Asset): Promise<void> {
     await AssetModel.create(asset);
+  }
+
+  async createAssets(assets: Asset[]): Promise<void> {
+    await AssetModel.insertMany(assets);
   }
 
   async setAssetEnable(assetHash: string): Promise<void> {
@@ -92,4 +81,118 @@ function makeAssetFromModel(document: Document): Asset {
     precision: document['precision'],
     isEnable: document['isEnable'],
   };
+}
+
+const IssuanceSchema = new mongoose.Schema({
+  assetAmount: Number,
+  tokenAmount: Number,
+  isReissuance: Boolean,
+});
+
+const BurnOutputSchema = new mongoose.Schema({
+  vout: Number,
+  amount: Number,
+});
+
+const ChainTransactionSchema = new mongoose.Schema({
+  txID: {
+    type: String,
+    unique: true,
+  },
+  blockHeight: Number,
+  blockTime: Number,
+  burnOutputs: [BurnOutputSchema],
+  issuances: [IssuanceSchema],
+});
+
+const ChainTransactionModel = mongoose.model(
+  'ChainTransaction',
+  ChainTransactionSchema
+);
+
+const AssetTransactionsSchema = new mongoose.Schema({
+  assetHash: {
+    type: String,
+    unique: true,
+  },
+  transactions: [
+    {
+      // ref to tx
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ChainTransaction',
+    },
+  ],
+});
+
+const AssetTransactionsModel = mongoose.model(
+  'AssetTransactions',
+  AssetTransactionsSchema
+);
+
+class SupplyTransactionMongoRepository implements SupplyTransactionRepository {
+  async addTransactionsData(
+    assetHash: string,
+    txs: AssetChainTransaction[]
+  ): Promise<void> {
+    // find already existing txs in db
+    const existingTxs = await ChainTransactionModel.find({
+      txID: { $in: txs.map((tx) => tx.txID) },
+    });
+
+    // remove already existing txs from txs
+    const filteredTxs = txs.filter(
+      (tx) => !existingTxs.find((existingTx) => existingTx.txID === tx.txID)
+    );
+
+    const documents = await ChainTransactionModel.insertMany(filteredTxs);
+
+    const ids = documents.map((doc) => doc._id);
+
+    const existing = await AssetTransactionsModel.findOne({
+      assetHash,
+    });
+
+    if (!existing) {
+      await AssetTransactionsModel.create({
+        assetHash,
+        transactions: ids,
+      });
+    }
+
+    await AssetTransactionsModel.findOneAndUpdate(
+      { assetHash },
+      {
+        $addToSet: { transactions: ids },
+      }
+    );
+  }
+
+  async getTransactionsData(
+    assetHash: string
+  ): Promise<AssetChainTransaction[]> {
+    const document = await AssetTransactionsModel.findOne({
+      assetHash,
+    })
+      .populate('transactions')
+      .exec();
+
+    if (!document) return [];
+
+    return document.transactions.map((doc) => {
+      return {
+        txID: doc['txID'],
+        blockHeight: doc['blockHeight'],
+        blockTime: doc['blockTime'],
+        burnOutputs: doc['burnOutputs'],
+        issuances: doc['issuances'],
+      };
+    });
+  }
+}
+
+export async function connect(
+  URL: string
+): Promise<[AssetRepository, SupplyTransactionRepository]> {
+  await mongoose.connect(URL);
+  return [new AssetMongoRepository(), new SupplyTransactionMongoRepository()];
 }

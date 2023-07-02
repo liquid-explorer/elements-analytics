@@ -1,7 +1,7 @@
 export interface Asset {
   assetHash: string;
   name: string;
-  ticker: string;
+  ticker?: string;
   precision: number;
-  isEnable: boolean;
+  isEnable?: boolean;
 }

@@ -20,6 +20,11 @@ export class InMemoryRepository implements AssetRepository {
     return Promise.resolve();
   }
 
+  createAssets(assets: Asset[]): Promise<void> {
+    this.assets = this.assets.concat(assets);
+    return Promise.resolve();
+  }
+
   async setAssetEnable(assetHash: string): Promise<void> {
     const asset = await this.getAsset(assetHash);
     if (asset.isEnable === true) return;
