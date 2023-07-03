@@ -1,0 +1,18 @@
+.flex-container {
+  resize: horizontal;
+  overflow: hidden;
+  display: flex;
+  background-color: #001233 , 1;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin: 1em;
+}
+
+.item {
+
+  background-color: #001233;
+  color: white;
+  font-family: monospace;
+}
+
