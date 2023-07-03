@@ -1,11 +1,22 @@
 <head>
-  <link href="styles/style.css" rel="stylesheet" type="text/css" />
+  <style>
+    .flex-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .flex-item {
+      width: 60%;
+    }
+  </style>
 </head>
 <div>
   <!-- <h1 "Supply"></h1> -->
 
   <div class="flex-container">
-  <h1>Supply</h1>
+    <h1>Supply</h1>
     <div class="flex-item">
       <canvas id="myChart"></canvas>
     </div>
@@ -30,6 +41,6 @@
           tension: 0.1,
         },
       ],
-    }
+    },
   });
 </script>
