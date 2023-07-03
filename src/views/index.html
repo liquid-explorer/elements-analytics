@@ -1,64 +1,35 @@
 <head>
-  <h1 "Supply"></h1>
   <link href="styles/style.css" rel="stylesheet" type="text/css" />
 </head>
 <div>
-  <div class="flexContainerChart">
-    <canvas id="myChart"></canvas>
-    <div class="item myChart"></div>
+  <!-- <h1 "Supply"></h1> -->
+
+  <div class="flex-container">
+  <h1>Supply</h1>
+    <div class="flex-item">
+      <canvas id="myChart"></canvas>
+    </div>
   </div>
-  ;
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-  function labels(config) {
-    var cfg = config || {};
-    var min = cfg.min || 0;
-    var max = cfg.max || 100;
-    var count = cfg.count || 8;
-    var step = (max - min) / count;
-    var decimals = cfg.decimals || 8;
-    var dfactor = Math.pow(10, decimals) || 0;
-    var prefix = cfg.prefix || '';
-    var values = [];
-    var i;
-
-    for (i = min; i < max; i += step) {
-      values.push(prefix + Math.round(dfactor * i) / dfactor);
-    }
-
-    return values;
-  }
-  /////////////////////////////////////////
-
-  //////////////////////////////
-  function points(config) {
-    const xs = this.numbers(config);
-    const ys = this.numbers(config);
-    return xs.map((x, i) => ({ x, y: ys[i] }));
-  }
-  /////////////////////
-
   const ctx = document.getElementById('myChart');
 
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: 'moislitd',
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
       datasets: [
         {
-          label: 'asset tracking',
+          label: 'Fuji',
           data: [65, 59, 80, 81, 56, 55, 40],
           fill: true,
           borderColor: 'rgb(2, 48, 71)',
           tension: 0.1,
         },
       ],
-    },
-    options: {
-      plugins: {},
-    },
+    }
   });
 </script>
