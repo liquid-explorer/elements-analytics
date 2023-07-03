@@ -18,3 +18,8 @@ Open API providing analytics about elements chain
 
 - logger - log all requests
 - authentication - check if request has valid token
+
+## Env
+
+- ESPLORA_URL=https://blockstream.info/liquidtestnet/api/
+- DATABASE_URL
