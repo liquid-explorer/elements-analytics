@@ -21,7 +21,7 @@ async function run() {
 
   const [assetRepo, txsRepo] = await connect(process.env.DATABASE_URL);
 
-  console.log('starting the server...');
+  console.log('starting the server...' + 'http://localhost:5000');
   const app = express();
   app.set('view engine', 'ejs');
 
