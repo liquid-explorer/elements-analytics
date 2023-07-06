@@ -27,6 +27,10 @@ export function makeAssetRouter(
     if (req.params.assetHash) await updater.update(req.params.assetHash);
     return controller.getAssetSupply(req, res);
   });
+  assetRoutes.get('/:assetHash/view', async (req, res) => {
+    if (req.params.assetHash) await updater.update(req.params.assetHash);
+    return controller.getAssetSupplyPage(req, res);
+  });
 
   return assetRoutes;
 }

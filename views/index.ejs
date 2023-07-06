@@ -13,7 +13,6 @@
 </head>
 <div>
   <!-- <h1 "Supply"></h1> -->
-
   <div class="flex-container">
     <h1>Supply</h1>
     <div class="flex-item">
@@ -24,17 +23,27 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<% if (supply) { %>
 <script>
+  function replaceAll(str, char, replaceChar) {
+    return str.split(char).join(replaceChar);
+  }
+
   const ctx = document.getElementById('myChart');
+
+  const supplyArg = '<%= supply %>';
+  console.log(supplyArg);
+  console.log(replaceAll(supplyArg, '&#34;'));
+  const supply = JSON.parse(replaceAll(supplyArg, '&#34;', '"'));
 
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+      labels: supply.labels,
       datasets: [
         {
           label: 'Fuji',
-          data: [65, 59, 80, 81, 56, 55, 40],
+          data: supply.data,
           fill: true,
           borderColor: 'rgb(2, 48, 71)',
           tension: 0.1,
@@ -43,3 +52,4 @@
     },
   });
 </script>
+<% } %>

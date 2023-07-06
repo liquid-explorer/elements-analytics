@@ -1,5 +1,3 @@
-import path from 'path';
-
 import dotenv from 'dotenv';
 import express from 'express';
 
@@ -25,6 +23,8 @@ async function run() {
 
   console.log('starting the server...');
   const app = express();
+  app.set('view engine', 'ejs');
+
   app.listen(5000);
 
   const controller = new AssetController(assetRepo, txsRepo);
@@ -37,12 +37,6 @@ async function run() {
   app.use(logger);
   app.use(express.json());
   app.use('/api/asset', assetRouter);
-
-  //serve static views/index.html file via GET /supply/html
-  app.get('/supply/graph', (_, res) => {
-    // TODO: implement this
-    res.sendFile(path.join(__dirname, 'public/index.html'));
-  });
 }
 
 run()
