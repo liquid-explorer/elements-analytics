@@ -101,4 +101,48 @@ export class AssetController {
       res.status(500).json({ msg: error.message });
     }
   }
+
+  async getAssetSupplyPage(req: Request, res: Response) {
+    try {
+      if (!req.params.assetHash) throw new Error('assetHash not found');
+      const transactions = await this.supplyRepository.getTransactionsData(
+        req.params.assetHash
+      );
+      const supply = makeSupplyGraph(transactions);
+
+      const labels = supply.map(
+        (x) =>
+          new Date(x.blockTime * 1000).toLocaleDateString() +
+          ' (' +
+          x.blockHeight +
+          ')'
+      );
+
+      const supplyY = [];
+
+      for (const { txs } of supply) {
+        const addSupply = txs.reduce((acc, { supplyModifier }) => {
+          return acc + supplyModifier;
+        }, 0);
+
+        let lastSupply = 0;
+        if (supplyY.length > 0) {
+          lastSupply = supplyY[supplyY.length - 1];
+        }
+
+        supplyY.push(lastSupply + addSupply);
+      }
+
+      res.render('index', {
+        assetHash: req.params.assetHash,
+        supply: JSON.stringify({
+          labels,
+          data: supplyY,
+        }), // todo fill (y axis)
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: error.message });
+    }
+  }
 }
